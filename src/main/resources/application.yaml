@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: r2dbc-proxy-examples
+  sleuth:
+    sampler:
+      probability: 1.0
