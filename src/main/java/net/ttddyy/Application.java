@@ -1,10 +1,13 @@
 package net.ttddyy;
 
+import java.time.Duration;
 import java.util.List;
 
 import javax.sql.DataSource;
 
 import brave.Tracer;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.r2dbc.client.R2dbc;
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
@@ -32,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @SpringBootApplication
 @RestController
+@Timed
 public class Application {
 
 	public static void main(String[] args) {
@@ -91,6 +95,13 @@ public class Application {
 
 	}
 
+	@RequestMapping("/slow")
+	Flux<?> slow() {
+		return this.r2dbc.withHandle(handle -> handle
+				.createQuery("CALL SLEEP(700);")  // sleep more than 500ms threshold
+				.mapResult(Mono::just));
+	}
+
 	@Bean
 	DataSource dataSource() {
 		return new EmbeddedDatabaseBuilder()
@@ -106,11 +117,14 @@ public class Application {
 			jdbcOperations.execute("CREATE TABLE test ( value INTEGER )");
 			jdbcOperations.execute("INSERT INTO test VALUES (100)");
 			jdbcOperations.execute("INSERT INTO test VALUES (200)");
+
+			// create sleep function for slow query
+			jdbcOperations.execute("CREATE ALIAS SLEEP FOR \"java.lang.Thread.sleep(long)\"");
 		};
 	}
 
 	@Bean
-	ConnectionFactory connectionFactory(Tracer tracer) {
+	ConnectionFactory connectionFactory(Tracer tracer, MeterRegistry meterRegistry) {
 		H2ConnectionConfiguration h2Configuration = H2ConnectionConfiguration.builder()
 				.username("sa")
 				.password("")
@@ -120,19 +134,21 @@ public class Application {
 
 		ConnectionFactory connectionFactory = new H2ConnectionFactory(h2Configuration);
 
-		TracingExecutionListener tracingListenerProxy = new TracingExecutionListener(tracer);
+		TracingExecutionListener tracingListener = new TracingExecutionListener(tracer);
+		MetricsExecutionListener metricsListener = new MetricsExecutionListener(meterRegistry, Duration.ofMillis(500));
 
 		QueryExecutionInfoFormatter queryFormatter = QueryExecutionInfoFormatter.showAll();
 
 		ConnectionFactory proxyConnectionFactory =
 				ProxyConnectionFactory.builder(connectionFactory)
-						.listener(tracingListenerProxy)
-						.onAfterQuery(mono -> {
-							mono.doOnNext(queryInfo -> {
-								System.out.println(queryFormatter.format(queryInfo));
-							})
-									.subscribe();
-						})
+						.listener(tracingListener)
+						.listener(metricsListener)
+						.onAfterQuery(mono -> mono
+								.doOnNext(queryInfo -> {
+									System.out.println(queryFormatter.format(queryInfo));
+								})
+								.subscribe()
+						)
 						.create();
 
 		return proxyConnectionFactory;
