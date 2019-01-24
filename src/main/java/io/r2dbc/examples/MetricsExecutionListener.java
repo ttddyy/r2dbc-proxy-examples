@@ -1,4 +1,4 @@
-package net.ttddyy;
+package io.r2dbc.examples;
 
 import java.time.Duration;
 

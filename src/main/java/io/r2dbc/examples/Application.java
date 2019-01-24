@@ -1,4 +1,4 @@
-package net.ttddyy;
+package io.r2dbc.examples;
 
 import java.time.Duration;
 import java.util.List;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Tracing sample application
+ * R2DBC proxy sample application
  */
 @SpringBootApplication
 @RestController
