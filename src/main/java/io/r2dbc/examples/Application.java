@@ -149,7 +149,7 @@ public class Application {
 								})
 								.subscribe()
 						)
-						.create();
+						.build();
 
 		return proxyConnectionFactory;
 	}
