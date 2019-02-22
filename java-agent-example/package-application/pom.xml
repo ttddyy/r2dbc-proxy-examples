@@ -111,12 +111,10 @@
 		<dependency>
 			<groupId>io.r2dbc</groupId>
 			<artifactId>r2dbc-client</artifactId>
-			<version>${r2dbc-client.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.r2dbc</groupId>
 			<artifactId>r2dbc-h2</artifactId>
-			<version>${r2dbc-h2.version}</version>
 		</dependency>
 
 	</dependencies>
