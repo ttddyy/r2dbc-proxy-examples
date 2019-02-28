@@ -8,6 +8,8 @@ This example provides sample listener implementations.
 Currently, there are listeners that integrate with [Spring Cloud Sleuth][spring-cloud-sleuth]
 and [Micrometer][micrometer].
 
+Also, this example uses `ProxyFactory` implementation with [Spring's ProxyFactory framework][spring-proxyfactory]
+to create proxies. (optional)
 
 ## java-agent-example
 
@@ -26,3 +28,4 @@ performs byte code manipulation to create proxies. (optional)
 [spring-cloud-sleuth]: https://spring.io/projects/spring-cloud-sleuth
 [micrometer]: http://micrometer.io/
 [byte-buddy]: https://bytebuddy.net
+[spring-proxyfactory]: https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#aop-prog

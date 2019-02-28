@@ -6,6 +6,8 @@
 
 - Tracing with Sleuth
 - Metrics with Micrometer (and log slow query)
+- Use different mechanism to create proxy
+  - `SpringAopProxyFactory` uses spring's `ProxyFactory` to create proxy instances.
 
 ## Tracing with Sleuth
 

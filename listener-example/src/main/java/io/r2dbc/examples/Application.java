@@ -12,6 +12,7 @@ import io.r2dbc.client.R2dbc;
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
 import io.r2dbc.proxy.ProxyConnectionFactory;
+import io.r2dbc.proxy.callback.ProxyConfig;
 import io.r2dbc.proxy.support.QueryExecutionInfoFormatter;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.Result;
@@ -139,8 +140,12 @@ public class Application {
 
 		QueryExecutionInfoFormatter queryFormatter = QueryExecutionInfoFormatter.showAll();
 
+		// Example to use different proxy creation mechanism.
+		ProxyConfig proxyConfig = new ProxyConfig();
+		proxyConfig.setProxyFactoryFactory(SpringAopProxyFactory::new);
+
 		ConnectionFactory proxyConnectionFactory =
-				ProxyConnectionFactory.builder(connectionFactory)
+				ProxyConnectionFactory.builder(connectionFactory, proxyConfig)
 						.listener(tracingListener)
 						.listener(metricsListener)
 						.onAfterQuery(mono -> mono
