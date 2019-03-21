@@ -8,7 +8,6 @@ import io.r2dbc.proxy.callback.ConnectionFactoryCallbackHandler;
 import io.r2dbc.proxy.callback.ProxyConfig;
 import io.r2dbc.proxy.core.MethodExecutionInfo;
 import io.r2dbc.proxy.core.QueryExecutionInfo;
-import io.r2dbc.proxy.listener.LifeCycleExecutionListener;
 import io.r2dbc.proxy.listener.LifeCycleListener;
 import io.r2dbc.proxy.listener.ProxyExecutionListener;
 import io.r2dbc.proxy.support.MethodExecutionInfoFormatter;
@@ -39,25 +38,21 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
  */
 public class R2dbcProxyAgent {
 
-	private static ProxyConfig proxyConfig = new ProxyConfig();
-
-	static {
-		configureProxyConfig(proxyConfig);
-	}
+	private static ProxyConfig proxyConfig = createProxyConfig();
 
 	/**
 	 * Configure the given {@link ProxyConfig}.
-	 *
-	 * @param proxyConfig {@link ProxyConfig} to configure
 	 */
-	private static void configureProxyConfig(ProxyConfig proxyConfig) {
+	private static ProxyConfig createProxyConfig() {
 
 		// as an example, printing out any method interactions and executed query.
 
 		QueryExecutionInfoFormatter queryFormatter = QueryExecutionInfoFormatter.showAll();
 		MethodExecutionInfoFormatter formatter = MethodExecutionInfoFormatter.withDefault();
 
-		proxyConfig.addListener(new ProxyExecutionListener() {
+		ProxyConfig.Builder builder = ProxyConfig.builder();
+
+		builder.listener(new ProxyExecutionListener() {
 			@Override
 			public void beforeMethod(MethodExecutionInfo executionInfo) {
 				System.out.println("Before >> " + formatter.format(executionInfo));
@@ -75,17 +70,18 @@ public class R2dbcProxyAgent {
 		});
 
 		// To add LifeCycleListener, it needs to be wrapped by LifeCycleExecutionListener
-		proxyConfig.addListener(LifeCycleExecutionListener.of(new LifeCycleListener() {
+		builder.listener(new LifeCycleListener() {
 			@Override
 			public void afterCreateOnConnectionFactory(MethodExecutionInfo methodExecutionInfo) {
 				String msg = format(">> Connection acquired. took=%sms", methodExecutionInfo.getExecuteDuration().toMillis());
 				System.out.println(msg);
 			}
-		}));
+		});
 
 		// Optional: use ByteBuddy to create proxies
-		proxyConfig.setProxyFactoryFactory(ByteBuddyProxyFactory::new);
+		builder.proxyFactoryFactory(ByteBuddyProxyFactory::new);
 
+		return builder.build();
 	}
 
 
