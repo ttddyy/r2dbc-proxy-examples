@@ -29,10 +29,9 @@
 		<release.version>2.5.3</release.version>
 
 		<!-- Main dependency versions -->
-		<spring-boot.version>2.1.2.RELEASE</spring-boot.version>
+		<spring-boot.version>2.1.8.RELEASE</spring-boot.version>
 		<byte-buddy.version>1.9.9</byte-buddy.version>
-		<r2dbc-bom.version>Arabba-M7</r2dbc-bom.version>
-		<r2dbc-proxy.version>1.0.0.BUILD-SNAPSHOT</r2dbc-proxy.version>
+		<r2dbc-bom.version>Arabba-RC1</r2dbc-bom.version>
 
 	</properties>
 

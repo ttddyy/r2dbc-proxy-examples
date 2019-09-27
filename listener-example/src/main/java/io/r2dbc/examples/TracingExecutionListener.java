@@ -1,5 +1,8 @@
 package io.r2dbc.examples;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import brave.Span;
 import brave.Tracer;
 import io.r2dbc.proxy.core.ConnectionInfo;
@@ -8,9 +11,6 @@ import io.r2dbc.proxy.core.MethodExecutionInfo;
 import io.r2dbc.proxy.core.QueryExecutionInfo;
 import io.r2dbc.proxy.core.QueryInfo;
 import io.r2dbc.proxy.listener.LifeCycleListener;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.stream.Collectors.joining;
 
@@ -49,13 +49,13 @@ public class TracingExecutionListener implements LifeCycleListener {
                 .start();
 
         // store the span for retrieval at "afterCreateOnConnectionFactory"
-        methodExecutionInfo.addCustomValue("connectionSpan", connectionSpan);
+		methodExecutionInfo.getValueStore().put("connectionSpan", connectionSpan);
     }
 
     @Override
     public void afterCreateOnConnectionFactory(MethodExecutionInfo methodExecutionInfo) {
         // retrieve the span created at "beforeCreateOnConnectionFactory"
-        Span connectionSpan = methodExecutionInfo.getCustomValue("connectionSpan", Span.class);
+		Span connectionSpan = methodExecutionInfo.getValueStore().get("connectionSpan", Span.class);
 
         Throwable thrown = methodExecutionInfo.getThrown();
         if (thrown != null) {
@@ -129,7 +129,7 @@ public class TracingExecutionListener implements LifeCycleListener {
             querySpan.tag(TAG_BATCH_SIZE, Integer.toString(queryExecutionInfo.getBatchSize()));
         }
 
-        queryExecutionInfo.addCustomValue("querySpan", querySpan);
+		queryExecutionInfo.getValueStore().put("querySpan", querySpan);
     }
 
     @Override
@@ -143,7 +143,7 @@ public class TracingExecutionListener implements LifeCycleListener {
     }
 
     private void afterExecuteQuery(QueryExecutionInfo queryExecutionInfo) {
-        Span querySpan = queryExecutionInfo.getCustomValue("querySpan", Span.class);
+		Span querySpan = queryExecutionInfo.getValueStore().get("querySpan", Span.class);
 
         querySpan
                 .tag(TAG_THREAD_ID, String.valueOf(queryExecutionInfo.getThreadId()))

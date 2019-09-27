@@ -79,7 +79,6 @@
 		<dependency>
 			<groupId>io.r2dbc</groupId>
 			<artifactId>r2dbc-proxy</artifactId>
-			<version>${r2dbc-proxy.version}</version>
 			<optional>true</optional>
 		</dependency>
 

@@ -13,6 +13,7 @@ import io.r2dbc.proxy.callback.ResultCallbackHandler;
 import io.r2dbc.proxy.callback.StatementCallbackHandler;
 import io.r2dbc.proxy.core.ConnectionInfo;
 import io.r2dbc.proxy.core.QueryExecutionInfo;
+import io.r2dbc.proxy.core.StatementInfo;
 import io.r2dbc.spi.Batch;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
@@ -104,7 +105,6 @@ public class ByteBuddyProxyFactory implements ProxyFactory {
 
 		public Object invoke(Method method, Object[] args) throws Throwable {
 			return callbackHandler.invoke(this, method, args);
-
 		}
 	}
 
@@ -139,8 +139,8 @@ public class ByteBuddyProxyFactory implements ProxyFactory {
 	}
 
 	@Override
-	public Statement wrapStatement(Statement statement, String query, ConnectionInfo connectionInfo) {
-		StatementCallbackHandler handler = new StatementCallbackHandler(statement, query, connectionInfo, this.proxyConfig);
+	public Statement wrapStatement(Statement statement, StatementInfo statementInfo, ConnectionInfo connectionInfo) {
+		StatementCallbackHandler handler = new StatementCallbackHandler(statement, statementInfo, connectionInfo, this.proxyConfig);
 		return instantiate(this.statementProxyConstructor, handler);
 	}
 

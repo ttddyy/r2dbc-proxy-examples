@@ -68,7 +68,7 @@ public class Application {
 				.createBatch()
 				.add("INSERT INTO test VALUES(200)")
 				.add("SELECT value FROM test")
-				.mapResult(Mono::just));
+				.mapResult(Application::extractColumns));
 	}
 
 	@RequestMapping("/transaction")
@@ -148,12 +148,9 @@ public class Application {
 				ProxyConnectionFactory.builder(connectionFactory, proxyConfig)
 						.listener(tracingListener)
 						.listener(metricsListener)
-						.onAfterQuery(mono -> mono
-								.doOnNext(queryInfo -> {
-									System.out.println(queryFormatter.format(queryInfo));
-								})
-								.subscribe()
-						)
+						.onAfterQuery(queryInfo -> {
+							System.out.println(queryFormatter.format(queryInfo));
+						})
 						.build();
 
 		return proxyConnectionFactory;

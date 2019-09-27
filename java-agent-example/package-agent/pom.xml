@@ -103,7 +103,6 @@
 		<dependency>
 			<groupId>io.r2dbc</groupId>
 			<artifactId>r2dbc-proxy</artifactId>
-			<version>${r2dbc-proxy.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>

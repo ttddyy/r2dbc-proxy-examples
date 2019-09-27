@@ -43,12 +43,12 @@ public class MetricsExecutionListener implements LifeCycleListener {
 	@Override
 	public void beforeCreateOnConnectionFactory(MethodExecutionInfo methodExecutionInfo) {
 		Timer.Sample sample = Timer.start(this.registry);
-		methodExecutionInfo.addCustomValue("connectionCreate", sample);
+		methodExecutionInfo.getValueStore().put("connectionCreate", sample);
 	}
 
 	@Override
 	public void afterCreateOnConnectionFactory(MethodExecutionInfo methodExecutionInfo) {
-		Timer.Sample sample = methodExecutionInfo.getCustomValue("connectionCreate", Timer.Sample.class);
+		Timer.Sample sample = methodExecutionInfo.getValueStore().get("connectionCreate", Timer.Sample.class);
 
 		Timer timer = Timer
 				.builder(this.metricNamePrefix + "connection")
