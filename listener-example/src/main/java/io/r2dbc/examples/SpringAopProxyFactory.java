@@ -52,7 +52,8 @@ public class SpringAopProxyFactory implements io.r2dbc.proxy.callback.ProxyFacto
 		}
 	}
 
-	private ProxyFactory createSpringProxyFactory(ProxyInterceptor interceptor, Object target, Class<?>... proxyInterfaces) {
+	private <T> T createProxy(CallbackHandler callbackHandler, Object target, Class<T> proxyInterface) {
+		ProxyInterceptor interceptor = new ProxyInterceptor(callbackHandler);
 
 		// NOTE: This ProxyFactory will use jdk dynamic proxy.
 		// This is because we try to make a proxy on interface, and spring's ProxyFactory
@@ -64,46 +65,43 @@ public class SpringAopProxyFactory implements io.r2dbc.proxy.callback.ProxyFacto
 		// Since this implementation is to demonstrate applying different proxy mechanism,
 		// it is ok to use jdk dynamic proxy.
 
-		ProxyFactory proxyFactory = new ProxyFactory(proxyInterfaces);
-		proxyFactory.setTarget(target);
+		ProxyFactory proxyFactory = new ProxyFactory(target);
 		proxyFactory.addAdvice(interceptor);
+		proxyFactory.addInterface(proxyInterface);
 		proxyFactory.addInterface(Wrapped.class);  // add this to all proxies
-		return proxyFactory;
+		T proxy = proxyInterface.cast(proxyFactory.getProxy());
+
+		return proxy;
 	}
 
 	@Override
 	public ConnectionFactory wrapConnectionFactory(ConnectionFactory connectionFactory) {
 		ConnectionFactoryCallbackHandler handler = new ConnectionFactoryCallbackHandler(connectionFactory, this.proxyConfig);
-		ProxyFactory proxyFactory = createSpringProxyFactory(new ProxyInterceptor(handler), connectionFactory, ConnectionFactory.class);
-		return (ConnectionFactory) proxyFactory.getProxy();
+		return createProxy(handler, connectionFactory, ConnectionFactory.class);
 	}
 
 	@Override
 	public Connection wrapConnection(Connection connection, ConnectionInfo connectionInfo) {
 		ConnectionCallbackHandler handler = new ConnectionCallbackHandler(connection, connectionInfo, this.proxyConfig);
-		ProxyFactory proxyFactory = createSpringProxyFactory(new ProxyInterceptor(handler), connection, Connection.class);
-		return (Connection) proxyFactory.getProxy();
+		return createProxy(handler, connection, Connection.class);
 	}
 
 	@Override
 	public Batch wrapBatch(Batch batch, ConnectionInfo connectionInfo) {
 		BatchCallbackHandler handler = new BatchCallbackHandler(batch, connectionInfo, this.proxyConfig);
-		ProxyFactory proxyFactory = createSpringProxyFactory(new ProxyInterceptor(handler), batch, Batch.class);
-		return (Batch) proxyFactory.getProxy();
+		return createProxy(handler, batch, Batch.class);
 	}
 
 	@Override
 	public Statement wrapStatement(Statement statement, StatementInfo statementInfo, ConnectionInfo connectionInfo) {
 		StatementCallbackHandler handler = new StatementCallbackHandler(statement, statementInfo, connectionInfo, this.proxyConfig);
-		ProxyFactory proxyFactory = createSpringProxyFactory(new ProxyInterceptor(handler), statement, Statement.class);
-		return (Statement) proxyFactory.getProxy();
+		return createProxy(handler, statement, Statement.class);
 	}
 
 	@Override
 	public Result wrapResult(Result result, QueryExecutionInfo queryExecutionInfo) {
 		ResultCallbackHandler handler = new ResultCallbackHandler(result, queryExecutionInfo, this.proxyConfig);
-		ProxyFactory proxyFactory = createSpringProxyFactory(new ProxyInterceptor(handler), result, Result.class);
-		return (Result) proxyFactory.getProxy();
+		return createProxy(handler, result, Result.class);
 	}
 
 }
