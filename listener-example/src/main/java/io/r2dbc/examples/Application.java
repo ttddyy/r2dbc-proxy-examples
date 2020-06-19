@@ -137,6 +137,7 @@ public class Application {
 
 		TracingExecutionListener tracingListener = new TracingExecutionListener(tracer);
 		MetricsExecutionListener metricsListener = new MetricsExecutionListener(meterRegistry, Duration.ofMillis(500));
+		QueryTimeMetricsExecutionListener queryTimeListener = new QueryTimeMetricsExecutionListener(meterRegistry);
 
 		QueryExecutionInfoFormatter queryFormatter = QueryExecutionInfoFormatter.showAll();
 
@@ -148,6 +149,7 @@ public class Application {
 				ProxyConnectionFactory.builder(connectionFactory, proxyConfig)
 						.listener(tracingListener)
 						.listener(metricsListener)
+						.listener(queryTimeListener)
 						.onAfterQuery(queryInfo -> {
 							System.out.println(queryFormatter.format(queryInfo));
 						})
