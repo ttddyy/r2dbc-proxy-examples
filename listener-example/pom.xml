@@ -23,8 +23,8 @@
 		<release.version>2.5.3</release.version>
 
 		<!-- Main dependency versions -->
-		<spring-cloud-sleuth.version>2.1.3.RELEASE</spring-cloud-sleuth.version>
-		<r2dbc-bom.version>Arabba-RC1</r2dbc-bom.version>
+		<spring-cloud-sleuth.version>2.2.3.RELEASE</spring-cloud-sleuth.version>
+		<r2dbc-bom.version>Arabba-SR5</r2dbc-bom.version>
 
 	</properties>
 
@@ -126,9 +126,10 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.r2dbc</groupId>
-			<artifactId>r2dbc-client</artifactId>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-r2dbc</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>io.r2dbc</groupId>
 			<artifactId>r2dbc-h2</artifactId>

@@ -100,7 +100,6 @@ Start `Application`
 Access endpoints
 ```shell
 > curl localhost:8080
-> curl localhost:8080/batch
 > curl localhost:8080/transaction
 > curl localhost:8080/rollback
 > curl localhost:8080/slow

@@ -1,31 +1,26 @@
 package io.r2dbc.examples;
 
-import java.util.List;
-
-import javax.sql.DataSource;
-
-import io.r2dbc.client.R2dbc;
-import io.r2dbc.examples.agent.R2dbcProxyAgent;
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
-import io.r2dbc.spi.Result;
-import net.bytebuddy.agent.ByteBuddyAgent;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import javax.sql.DataSource;
 
 /**
  * R2DBC proxy sample application
@@ -45,63 +40,37 @@ public class Application {
 	}
 
 	@Autowired
-	R2dbc r2dbc;
+	DatabaseClient databaseClient;
 
-	static Mono<List<Integer>> extractColumns(Result result) {
-		return Flux.from(result
-				.map((row, rowMetadata) -> {
-					return row.get("value", Integer.class);
-				}))
-				.collectList();
-	}
+	@Autowired
+	TransactionalOperator operator;
 
 	@RequestMapping("/")
 	Flux<?> select() {
-		return this.r2dbc.withHandle(handle -> handle
-				.createQuery("SELECT value FROM test;")
-				.mapResult(Application::extractColumns)
-		);
-	}
-
-	@RequestMapping("/batch")
-	Flux<?> batch() {
-		return this.r2dbc.withHandle(handle -> handle
-				.createBatch()
-				.add("INSERT INTO test VALUES(200)")
-				.add("SELECT value FROM test")
-				.mapResult(Mono::just));
+		return this.databaseClient.execute("SELECT value FROM test;")
+				.map(row -> row.get("value", Integer.class))
+				.all();
 	}
 
 	@RequestMapping("/transaction")
-	Flux<?> transaction() {
-		return this.r2dbc.withHandle(handle -> handle
-				.inTransaction(h1 -> h1.execute("INSERT INTO test VALUES ($1)", 200))
-		);
+	Mono<?> transaction() {
+		return this.databaseClient.execute("INSERT INTO test VALUES (:value)")
+				.bind("value", 200)
+				.fetch().rowsUpdated().as(this.operator::transactional);
 	}
 
-	@RequestMapping("/rollback")
-	Flux<?> rollback() {
-		return this.r2dbc.withHandle(handle -> handle
-				.inTransaction(h1 -> h1
-						.select("SELECT value FROM test")
-						.<Object>mapResult(Application::extractColumns)
-
-						.concatWith(h1.execute("INSERT INTO test VALUES ($1)", 200))
-						.concatWith(h1.select("SELECT value FROM test")
-								.mapResult(Application::extractColumns))
-
-						.concatWith(Mono.error(new Exception())))
-
-				.onErrorResume(t -> handle.select("SELECT value FROM test")
-						.mapResult(Application::extractColumns)));
-
-	}
+	// TODO: find a way to manually rollback transaction
+//	@RequestMapping("/rollback")
+//	Mono<?> rollback() {
+//		return this.databaseClient.execute("INSERT INTO test VALUES (:value)")
+//				.bind("value", "ABC")  // wrong value type
+//				.fetch().rowsUpdated().as(this.operator::transactional)
+//				.onErrorResume(t -> Mono.just(-99));
+//	}
 
 	@RequestMapping("/slow")
 	Flux<?> slow() {
-		return this.r2dbc.withHandle(handle -> handle
-				.createQuery("CALL SLEEP(700);")  // sleep more than 500ms threshold
-				.mapResult(Mono::just));
+		return this.databaseClient.execute("CALL SLEEP(700);").map(row -> Mono.just(-1)).all();
 	}
 
 	@Bean
@@ -140,8 +109,8 @@ public class Application {
 
 
 	@Bean
-	R2dbc r2dbcClient(ConnectionFactory connectionFactory) {
-		return new R2dbc(connectionFactory);
+	DatabaseClient databaseClient(ConnectionFactory connectionFactory) {
+		return DatabaseClient.create(connectionFactory);
 	}
 
 }

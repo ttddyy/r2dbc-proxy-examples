@@ -109,9 +109,10 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.r2dbc</groupId>
-			<artifactId>r2dbc-client</artifactId>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-r2dbc</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>io.r2dbc</groupId>
 			<artifactId>r2dbc-h2</artifactId>
