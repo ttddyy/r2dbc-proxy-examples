@@ -105,6 +105,9 @@ Access endpoints
 > curl localhost:8080/slow
 ```
 
+- `R2dbcSpiController` for endpoints(`/spi/*`)  with access using R2DBC SPIs
+- `DatabaseClientController` for endpoints(`/spring/*`)  with access using `DatabseClient` from Spring
+
 Metrics actuator endpoint
 
 ```shell
