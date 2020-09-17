@@ -29,8 +29,8 @@
 		<release.version>2.5.3</release.version>
 
 		<!-- Main dependency versions -->
-		<spring-boot.version>2.3.0.RELEASE</spring-boot.version>
-		<byte-buddy.version>1.9.9</byte-buddy.version>
+		<spring-boot.version>2.3.2.RELEASE</spring-boot.version>
+		<byte-buddy.version>1.9.16</byte-buddy.version>
 
 	</properties>
 

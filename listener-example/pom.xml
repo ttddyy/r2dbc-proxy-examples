@@ -23,8 +23,8 @@
 		<release.version>2.5.3</release.version>
 
 		<!-- Main dependency versions -->
-		<spring-cloud-sleuth.version>2.2.3.RELEASE</spring-cloud-sleuth.version>
-		<r2dbc-bom.version>Arabba-SR5</r2dbc-bom.version>
+		<spring-cloud-sleuth.version>2.2.5.RELEASE</spring-cloud-sleuth.version>
+		<r2dbc-bom.version>Arabba-SR7</r2dbc-bom.version>
 
 	</properties>
 
