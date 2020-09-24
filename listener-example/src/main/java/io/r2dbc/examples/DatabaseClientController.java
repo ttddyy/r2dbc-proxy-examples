@@ -38,6 +38,20 @@ public class DatabaseClientController {
                 .all();
     }
 
+    @GetMapping("/first")
+    Mono<Integer> first() {
+        return this.databaseClient.execute("SELECT value FROM test;")
+                .map(row -> row.get("value", Integer.class))
+                .first();
+    }
+
+    @GetMapping("/one")
+    Mono<Integer> one() {
+        return this.databaseClient.execute("SELECT value FROM test WHERE value=99;")
+                .map(row -> row.get("value", Integer.class))
+                .one();
+    }
+
 
     // Perform an update query with transaction
     @GetMapping("/tx")

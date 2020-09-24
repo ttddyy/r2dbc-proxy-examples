@@ -90,6 +90,7 @@ public class Application {
 			jdbcOperations.execute("CREATE TABLE test ( value INTEGER )");
 			jdbcOperations.execute("INSERT INTO test VALUES (100)");
 			jdbcOperations.execute("INSERT INTO test VALUES (200)");
+			jdbcOperations.execute("INSERT INTO test VALUES (99)");
 
 			// create sleep function for slow query
 			jdbcOperations.execute("CREATE ALIAS SLEEP FOR \"java.lang.Thread.sleep(long)\"");
