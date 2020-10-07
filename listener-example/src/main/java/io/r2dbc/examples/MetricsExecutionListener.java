@@ -1,7 +1,5 @@
 package io.r2dbc.examples;
 
-import java.time.Duration;
-
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -11,6 +9,8 @@ import io.r2dbc.proxy.listener.LifeCycleListener;
 import io.r2dbc.proxy.support.QueryExecutionInfoFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
 
 /**
  * Listener to populate micrometer metrics and logs slow query.
@@ -103,7 +103,7 @@ public class MetricsExecutionListener implements LifeCycleListener {
 		Counter success = Counter
 				.builder(this.metricNamePrefix + "query")
 				.description("Num of executed queries")
-				.register(registry);
+				.register(this.registry);
 		success.increment();
 
 

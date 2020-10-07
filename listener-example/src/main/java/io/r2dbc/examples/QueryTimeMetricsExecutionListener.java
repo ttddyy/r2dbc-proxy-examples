@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.Timer;
 import io.r2dbc.proxy.core.QueryExecutionInfo;
 import io.r2dbc.proxy.core.QueryInfo;
 import io.r2dbc.proxy.listener.ProxyExecutionListener;
-import org.springframework.util.StringUtils;
 
 import static java.lang.String.format;
 
@@ -32,10 +31,9 @@ public class QueryTimeMetricsExecutionListener implements ProxyExecutionListener
 	@Override
 	public void afterQuery(QueryExecutionInfo queryExecutionInfo) {
 		for (QueryInfo queryInfo : queryExecutionInfo.getQueries()) {
-			QueryType queryType = this.queryTypeDetector.detect(queryInfo.getQuery());
-			String readOrWrite = queryType == QueryType.READ ? "read" : "write";
-			String metricsName = this.metricNamePrefix + "query." + readOrWrite;
-			String description = format("Time to execute %s queries", readOrWrite);
+			String queryType = this.queryTypeDetector.detect(queryInfo.getQuery()).name().toLowerCase();
+			String metricsName = this.metricNamePrefix + "query." + queryType;
+			String description = format("Time to execute %s queries", queryType);
 
 			Timer timer = Timer
 					.builder(metricsName)
@@ -59,7 +57,9 @@ public class QueryTimeMetricsExecutionListener implements ProxyExecutionListener
 		this.queryTypeDetector = queryTypeDetector;
 	}
 
-	public enum QueryType {READ, WRITE}
+	public enum QueryType {
+		SELECT, INSERT, UPDATE, DELETE, OTHER
+	}
 
 	public interface QueryTypeDetector {
 		QueryType detect(String query);
@@ -68,8 +68,39 @@ public class QueryTimeMetricsExecutionListener implements ProxyExecutionListener
 	public static class DefaultQueryTypeDetector implements QueryTypeDetector {
 		@Override
 		public QueryType detect(String query) {
-			return StringUtils.startsWithIgnoreCase(StringUtils.trimLeadingWhitespace(query), "SELECT") ? QueryType.READ : QueryType.WRITE;
+			final String trimmedQuery = removeCommentAndWhiteSpace(query);
+			if (trimmedQuery == null || trimmedQuery.length() < 1) {
+				return QueryType.OTHER;
+			}
+
+			final char firstChar = Character.toLowerCase(trimmedQuery.charAt(0));
+			final QueryType type;
+			switch (firstChar) {
+				case 's':
+					type = QueryType.SELECT;
+					break;
+				case 'i':
+					type = QueryType.INSERT;
+					break;
+				case 'u':
+					type = QueryType.UPDATE;
+					break;
+				case 'd':
+					type = QueryType.DELETE;
+					break;
+				default:
+					type = QueryType.OTHER;
+			}
+			return type;
 		}
+
+		private String removeCommentAndWhiteSpace(String query) {
+			if (query == null) {
+				return null;
+			}
+			return query.replaceAll("--.*\n", "").replaceAll("\n", "").replaceAll("/\\*.*\\*/", "").trim();
+		}
+
 	}
 
 
