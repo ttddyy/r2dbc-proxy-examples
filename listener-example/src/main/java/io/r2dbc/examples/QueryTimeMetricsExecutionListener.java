@@ -69,23 +69,23 @@ public class QueryTimeMetricsExecutionListener implements ProxyExecutionListener
 		@Override
 		public QueryType detect(String query) {
 			final String trimmedQuery = removeCommentAndWhiteSpace(query);
-			if (trimmedQuery == null || trimmedQuery.length() < 1) {
+			if (trimmedQuery == null || trimmedQuery.length() < 6) {
 				return QueryType.OTHER;
 			}
 
-			final char firstChar = Character.toLowerCase(trimmedQuery.charAt(0));
+			String prefix = trimmedQuery.substring(0, 6).toUpperCase();
 			final QueryType type;
-			switch (firstChar) {
-				case 's':
+			switch (prefix) {
+				case "SELECT":
 					type = QueryType.SELECT;
 					break;
-				case 'i':
+				case "INSERT":
 					type = QueryType.INSERT;
 					break;
-				case 'u':
+				case "UPDATE":
 					type = QueryType.UPDATE;
 					break;
-				case 'd':
+				case "DELETE":
 					type = QueryType.DELETE;
 					break;
 				default:
