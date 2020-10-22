@@ -21,10 +21,6 @@ import java.util.stream.Collectors;
 @RequestMapping(path = "/spi")
 public class R2dbcSpiController {
 
-    // Due to https://github.com/r2dbc/r2dbc-proxy/issues/68 , wrapping connection creation("ConnectionFactory#create")
-    // with "Mono#from" in "[Mono|Flux]#usingWhen".
-    // For example, "Flux.usingWhen(Mono.from(this.connectionFactory.create()), ...)"
-
     private final ConnectionFactory connectionFactory;
 
     public R2dbcSpiController(ConnectionFactory connectionFactory) {
@@ -39,7 +35,7 @@ public class R2dbcSpiController {
     // Perform a query without transaction
     @GetMapping("/simple")
     Flux<Integer> simple() {
-        return Flux.usingWhen(Mono.from(this.connectionFactory.create()), connection -> {
+        return Flux.usingWhen(this.connectionFactory.create(), connection -> {
             String query = "SELECT value FROM test";
             Flux<Result> execute = Flux.from(connection.createStatement(query).execute());
             Function<Result, Flux<Integer>> mapper = (result) -> Flux.from(result.map((row, rowMetadata) -> row.get("value", Integer.class)));
@@ -49,7 +45,7 @@ public class R2dbcSpiController {
 
     @GetMapping("/multi-queries")
     Flux<Integer> multiQueries() {
-        return Flux.usingWhen(Mono.from(this.connectionFactory.create()), connection -> {
+        return Flux.usingWhen(this.connectionFactory.create(), connection -> {
             String queries = "SELECT value FROM test; SELECT value FROM test";
             Flux<Result> execute = Flux.from(connection.createStatement(queries).execute());
             Function<Result, Flux<Integer>> mapper = (result) -> Flux.from(result.map((row, rowMetadata) -> row.get("value", Integer.class)));
@@ -60,7 +56,7 @@ public class R2dbcSpiController {
     // Perform an update query with transaction
     @GetMapping("/tx")
     Mono<Integer> tx() {
-        return Mono.usingWhen(Mono.from(this.connectionFactory.create()), connection -> {
+        return Mono.usingWhen(this.connectionFactory.create(), connection -> {
             String query = "INSERT INTO test VALUES ($1)";
             Flux<Result> execute = Flux.from(connection.createStatement(query).bind("$1", "100").execute());
             Function<Result, Mono<Integer>> mapper = (result) -> Mono.from(result.getRowsUpdated());
@@ -76,7 +72,7 @@ public class R2dbcSpiController {
 
     @GetMapping("/tx-with-queries")
     Mono<Integer> txWithQueries() {
-        return Mono.usingWhen(Mono.from(this.connectionFactory.create()), connection -> {
+        return Mono.usingWhen(this.connectionFactory.create(), connection -> {
             String query = "INSERT INTO test VALUES ($1)";
             Function<Result, Mono<Integer>> mapper = (result) -> Mono.from(result.getRowsUpdated());
             Flux<Integer> execute1 = Flux.from(connection.createStatement(query).bind("$1", "100").execute()).flatMap(mapper);
@@ -97,7 +93,7 @@ public class R2dbcSpiController {
     // Multiple Tx on single connection
     @GetMapping("/multi-tx")
     Flux<Integer> multipleTx() {
-        return Flux.usingWhen(Mono.from(this.connectionFactory.create()), connection -> {
+        return Flux.usingWhen(this.connectionFactory.create(), connection -> {
             String query = "INSERT INTO test VALUES ($1)";
             Function<Result, Mono<Integer>> mapper = (result) -> Mono.from(result.getRowsUpdated());
             Flux<Integer> execute1 = Flux.from(connection.createStatement(query).bind("$1", "100").execute()).flatMap(mapper);
@@ -117,7 +113,7 @@ public class R2dbcSpiController {
     // Explicit rollback
     @GetMapping("/rollback")
     Mono<Integer> rollback() {
-        return Mono.usingWhen(Mono.from(this.connectionFactory.create()), connection -> {
+        return Mono.usingWhen(this.connectionFactory.create(), connection -> {
             String query = "INSERT INTO test VALUES ($1)";
             Function<Result, Mono<Integer>> mapper = (result) -> Mono.from(result.getRowsUpdated());
             Flux<Integer> execute = Flux.from(connection.createStatement(query).bind("$1", "100").execute()).flatMap(mapper);
@@ -133,7 +129,7 @@ public class R2dbcSpiController {
     // Batch
     @GetMapping("/batch")
     Flux<Integer> batch() {
-        return Flux.usingWhen(Mono.from(this.connectionFactory.create()), connection -> {
+        return Flux.usingWhen(this.connectionFactory.create(), connection -> {
             String query1 = "INSERT INTO test VALUES (50)";
             String query2 = "INSERT INTO test VALUES (70)";
             Function<Result, Mono<Integer>> mapper = (result) -> Mono.from(result.getRowsUpdated());
@@ -144,7 +140,7 @@ public class R2dbcSpiController {
     // Error
     @GetMapping("/error")
     Flux<Integer> error() {
-        return Flux.usingWhen(Mono.from(this.connectionFactory.create()), connection -> {
+        return Flux.usingWhen(this.connectionFactory.create(), connection -> {
             String query = "SELECT SOMETHING_WRONG();";
             Flux<Result> execute = Flux.from(connection.createStatement(query).execute());
             Function<Result, Flux<Integer>> mapper = (result) -> Flux.from(result.map((row, rowMetadata) -> row.get(0, Integer.class)));
@@ -155,7 +151,7 @@ public class R2dbcSpiController {
     // Error with recovery
     @GetMapping("/error-recovery")
     Flux<?> errorRecovery() {
-        return Flux.usingWhen(Mono.from(this.connectionFactory.create()), connection -> {
+        return Flux.usingWhen(this.connectionFactory.create(), connection -> {
             String query = "SELECT SOMETHING_WRONG();";
             Flux<Result> execute = Flux.from(connection.createStatement(query).execute());
             Function<Result, Flux<Integer>> mapper = (result) -> Flux.from(result.map((row, rowMetadata) -> row.get(0, Integer.class)));
@@ -166,7 +162,7 @@ public class R2dbcSpiController {
     // Error with Tx
     @GetMapping("/error-tx")
     Mono<Integer> errorTx() {
-        return Mono.usingWhen(Mono.from(this.connectionFactory.create()), connection -> {
+        return Mono.usingWhen(this.connectionFactory.create(), connection -> {
             String query = "INSERT INTO test VALUES ($1)";
             Flux<Result> execute = Flux.from(connection.createStatement(query).bind("$1", "ABC").execute());
             Function<Result, Mono<Integer>> mapper = (result) -> Mono.from(result.getRowsUpdated());

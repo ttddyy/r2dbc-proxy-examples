@@ -5,7 +5,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.r2dbc.proxy.core.MethodExecutionInfo;
 import io.r2dbc.proxy.core.QueryExecutionInfo;
-import io.r2dbc.proxy.listener.LifeCycleListener;
+import io.r2dbc.proxy.listener.ProxyMethodExecutionListener;
 import io.r2dbc.proxy.support.QueryExecutionInfoFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,7 @@ import java.time.Duration;
  *
  * @author Tadaya Tsuyukubo
  */
-public class MetricsExecutionListener implements LifeCycleListener {
+public class MetricsExecutionListener implements ProxyMethodExecutionListener {
 	private static final Logger logger = LoggerFactory.getLogger(MetricsExecutionListener.class);
 
 	private MeterRegistry registry;

@@ -3,7 +3,7 @@ package io.r2dbc.examples;
 import brave.Span;
 import brave.Tracer;
 import io.r2dbc.proxy.core.*;
-import io.r2dbc.proxy.listener.LifeCycleListener;
+import io.r2dbc.proxy.listener.ProxyMethodExecutionListener;
 
 import static java.util.stream.Collectors.joining;
 
@@ -12,7 +12,7 @@ import static java.util.stream.Collectors.joining;
  *
  * @author Tadaya Tsuyukubo
  */
-public class TracingExecutionListener implements LifeCycleListener {
+public class TracingExecutionListener implements ProxyMethodExecutionListener {
 
     private static final String TAG_CONNECTION_ID = "connectionId";
     private static final String TAG_CONNECTION_CREATE_THREAD_ID = "threadIdOnCreate";
